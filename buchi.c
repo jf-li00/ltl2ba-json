@@ -27,6 +27,9 @@
 /* Send bug-reports and/or questions to Paul Gastin                       */
 /* http://www.lsv.ens-cachan.fr/~gastin                                   */
 
+#include <cjson/cJSON.h>
+
+
 #include "ltl2ba.h"
 
 /********************************************************************\
@@ -476,7 +479,40 @@ void make_btrans(BState *s) /* creates all the transitions from a state */
 /********************************************************************\
 |*                  Display of the Buchi automaton                  *|
 \********************************************************************/
+void dump_buchi_to_json() {
+    BTrans *t;
+    BState *s;
+    cJSON *root = cJSON_CreateObject();
+    cJSON *states = cJSON_CreateArray();
+    cJSON *transitions = cJSON_CreateArray();
 
+    for (s = bstates->prv; s != bstates; s = s->prv) {
+        cJSON *state = cJSON_CreateObject();
+        cJSON_AddNumberToObject(state, "id", s->id);
+        cJSON_AddNumberToObject(state, "final", s->final);
+        cJSON_AddItemToArray(states, state);
+
+        for (t = s->trans->nxt; t != s->trans; t = t->nxt) {
+            cJSON *transition = cJSON_CreateObject();
+            cJSON_AddNumberToObject(transition, "from", s->id);
+            cJSON_AddNumberToObject(transition, "to", t->to->id);
+            cJSON_AddItemToArray(transitions, transition);
+        }
+    }
+
+    cJSON_AddItemToObject(root, "states", states);
+    cJSON_AddItemToObject(root, "transitions", transitions);
+
+    char *json_output = cJSON_Print(root);
+    FILE *file = fopen("./buchi.json", "w");
+    if (file) {
+        fprintf(file, "%s", json_output);
+        fclose(file);
+    }
+
+    free(json_output);
+    cJSON_Delete(root);
+}
 void print_buchi(BState *s) /* dumps the Buchi automaton */
 {
   BTrans *t;
@@ -700,6 +736,7 @@ void mk_buchi()
       fprintf(tl_out, "\n");
     }
   }
+  dump_buchi_to_json();
 
   print_spin_buchi();
 }
