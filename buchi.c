@@ -581,23 +581,26 @@ void print_buchi(BState *s) /* dumps the Buchi automaton */
 }
 
 void print_spin_buchi() {
-  BTrans *t;
-  BState *s;
-  int accept_all = 0;
+  BTrans *t;          // pointer to a transition
+  BState *s;          // pointer to a state
+  int accept_all = 0; // flag to check if all states are accepting
+  // Check if the automaton is empty
   if (bstates->nxt == bstates) { /* empty automaton */
     fprintf(tl_out, "never {    /* ");
     put_uform();
     fprintf(tl_out, " */\n");
-    fprintf(tl_out, "T0_init:\n");
-    fprintf(tl_out, "\tfalse;\n");
+    fprintf(tl_out, "T0_init:\n"); // print the initial state
+    fprintf(tl_out, "\tfalse;\n"); // print that there are no transitions
     fprintf(tl_out, "}\n");
     return;
   }
+  // Check if the automaton is a "true" automaton
   if (bstates->nxt->nxt == bstates && bstates->nxt->id == 0) { /* true */
     fprintf(tl_out, "never {    /* ");
     put_uform();
     fprintf(tl_out, " */\n");
     fprintf(tl_out, "accept_init:\n");
+    // print a transition that always goes to the initial state
     fprintf(tl_out, "\tif\n");
     fprintf(tl_out, "\t:: (1) -> goto accept_init\n");
     fprintf(tl_out, "\tfi;\n");
@@ -608,11 +611,14 @@ void print_spin_buchi() {
   fprintf(tl_out, "never { /* ");
   put_uform();
   fprintf(tl_out, " */\n");
+  // Iterate over all states in reverse order
   for (s = bstates->prv; s != bstates; s = s->prv) {
+    // If the state is an accepting state, set accept_all to 1 and continue
     if (s->id == 0) { /* accept_all at the end */
       accept_all = 1;
       continue;
     }
+    // Print the state's information
     if (s->final == accept)
       fprintf(tl_out, "accept_");
     else
@@ -621,28 +627,42 @@ void print_spin_buchi() {
       fprintf(tl_out, "init:\n");
     else
       fprintf(tl_out, "S%i:\n", s->id);
+
+    // If the state has no transitions, print "false" and continue
     if (s->trans->nxt == s->trans) {
       fprintf(tl_out, "\tfalse;\n");
       continue;
     }
+
+    // Print the transitions of the state
     fprintf(tl_out, "\tif\n");
     for (t = s->trans->nxt; t != s->trans; t = t->nxt) {
       BTrans *t1;
+      // Start of a transition condition
       fprintf(tl_out, "\t:: (");
+      // print the positive and negative sets of the transition
       spin_print_set(t->pos, t->neg);
+      // Iterate over all transitions until the current transition
       for (t1 = t; t1->nxt != s->trans;)
+        // If the next transition leads to the same state as the current
+        // transition
         if (t1->nxt->to->id == t->to->id &&
             t1->nxt->to->final == t->to->final) {
+          // Start of another transition condition
           fprintf(tl_out, ") || (");
+          // print the positive and negative sets
           spin_print_set(t1->nxt->pos, t1->nxt->neg);
           t1->nxt = t1->nxt->nxt;
         } else
           t1 = t1->nxt;
+      // End of a transition condition and start of the transition action
       fprintf(tl_out, ") -> goto ");
+      // Print the final state of the transition
       if (t->to->final == accept)
         fprintf(tl_out, "accept_");
       else
         fprintf(tl_out, "T%i_", t->to->final);
+      // Print the id of the final state
       if (t->to->id == 0)
         fprintf(tl_out, "all\n");
       else if (t->to->id == -1)
@@ -650,8 +670,11 @@ void print_spin_buchi() {
       else
         fprintf(tl_out, "S%i\n", t->to->id);
     }
+    // End of the if construct for transitions
     fprintf(tl_out, "\tfi;\n");
   }
+
+  // If all states are accepting, print "accept_all"
   if (accept_all) {
     fprintf(tl_out, "accept_all:\n");
     fprintf(tl_out, "\tskip\n");

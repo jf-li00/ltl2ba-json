@@ -93,6 +93,7 @@ int tl_Getchar(void) {
   return -1;
 }
 
+/// print the universal formula
 void put_uform(void) { fprintf(tl_out, "%s", uform); }
 
 void tl_UnGetchar(void) {
