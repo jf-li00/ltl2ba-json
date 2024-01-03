@@ -31,44 +31,44 @@
 /* Written by Gerard J. Holzmann, Bell Laboratories, U.S.A.               */
 
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
-#include <sys/time.h>
+#include <string.h>
 #include <sys/resource.h>
+#include <sys/time.h>
 
 typedef struct Symbol {
-char		*name;
-	struct Symbol	*next;	/* linked list, symbol table */
+  char *name;
+  struct Symbol *next; /* linked list, symbol table */
 } Symbol;
 
 typedef struct Node {
-	short		ntyp;	/* node type */
-	struct Symbol	*sym;
-	struct Node	*lft;	/* tree */
-	struct Node	*rgt;	/* tree */
-	struct Node	*nxt;	/* if linked list */
+  short ntyp; /* node type */
+  struct Symbol *sym;
+  struct Node *lft; /* tree */
+  struct Node *rgt; /* tree */
+  struct Node *nxt; /* if linked list */
 } Node;
 
 typedef struct Graph {
-	Symbol		*name;
-	Symbol		*incoming;
-	Symbol		*outgoing;
-	Symbol		*oldstring;
-	Symbol		*nxtstring;
-	Node		*New;
-	Node		*Old;
-	Node		*Other;
-	Node		*Next;
-	unsigned char	isred[64], isgrn[64];
-	unsigned char	redcnt, grncnt;
-	unsigned char	reachable;
-	struct Graph	*nxt;
+  Symbol *name;
+  Symbol *incoming;
+  Symbol *outgoing;
+  Symbol *oldstring;
+  Symbol *nxtstring;
+  Node *New;
+  Node *Old;
+  Node *Other;
+  Node *Next;
+  unsigned char isred[64], isgrn[64];
+  unsigned char redcnt, grncnt;
+  unsigned char reachable;
+  struct Graph *nxt;
 } Graph;
 
 typedef struct Mapping {
-	char	*from;
-	Graph	*to;
-	struct Mapping	*nxt;
+  char *from;
+  Graph *to;
+  struct Mapping *nxt;
 } Mapping;
 
 typedef struct ATrans {
@@ -85,7 +85,6 @@ typedef struct AProd {
   struct AProd *nxt;
   struct AProd *prv;
 } AProd;
-
 
 typedef struct GTrans {
   int *pos;
@@ -136,114 +135,136 @@ typedef struct BScc {
 } BScc;
 
 enum {
-	ALWAYS=257,
-	AND,		/* 258 */
-	EQUIV,		/* 259 */
-	EVENTUALLY,	/* 260 */
-	FALSE,		/* 261 */
-	IMPLIES,	/* 262 */
-	NOT,		/* 263 */
-	OR,		/* 264 */
-	PREDICATE,	/* 265 */
-	TRUE,		/* 266 */
-	U_OPER,		/* 267 */
-	V_OPER		/* 268 */
+  ALWAYS = 257,
+  AND,        /* 258 */
+  EQUIV,      /* 259 */
+  EVENTUALLY, /* 260 */
+  FALSE,      /* 261 */
+  IMPLIES,    /* 262 */
+  NOT,        /* 263 */
+  OR,         /* 264 */
+  PREDICATE,  /* 265 */
+  TRUE,       /* 266 */
+  U_OPER,     /* 267 */
+  V_OPER      /* 268 */
 #ifdef NXT
-	, NEXT		/* 269 */
+  ,
+  NEXT /* 269 */
 #endif
 };
 
-Node	*Canonical(Node *);
-Node	*canonical(Node *);
-Node	*cached(Node *);
-Node	*dupnode(Node *);
-Node	*getnode(Node *);
-Node	*in_cache(Node *);
-Node	*push_negation(Node *);
-Node	*right_linked(Node *);
-Node	*tl_nn(int, Node *, Node *);
+Node *Canonical(Node *);
+Node *canonical(Node *);
+Node *cached(Node *);
+Node *dupnode(Node *);
+Node *getnode(Node *);
+Node *in_cache(Node *);
+Node *push_negation(Node *);
+Node *right_linked(Node *);
+Node *tl_nn(int, Node *, Node *);
 
-Symbol	*tl_lookup(char *);
-Symbol	*getsym(Symbol *);
-Symbol	*DoDump(Node *);
+Symbol *tl_lookup(char *);
+Symbol *getsym(Symbol *);
+Symbol *DoDump(Node *);
 
-char	*emalloc(int);	
+char *emalloc(int);
 
-int	anywhere(int, Node *, Node *);
-int	dump_cond(Node *, Node *, int);
-int	isequal(Node *, Node *);
-int	tl_Getchar(void);
+int anywhere(int, Node *, Node *);
+int dump_cond(Node *, Node *, int);
+int isequal(Node *, Node *);
+int tl_Getchar(void);
 
-void	*tl_emalloc(int);
-ATrans  *emalloc_atrans();
-void    free_atrans(ATrans *, int);
-void    free_all_atrans();
-GTrans  *emalloc_gtrans();
-void    free_gtrans(GTrans *, GTrans *, int);
-BTrans  *emalloc_btrans();
-void    free_btrans(BTrans *, BTrans *, int);
-void	a_stats(void);
-void	addtrans(Graph *, char *, Node *, char *);
-void	cache_stats(void);
-void	dump(Node *);
-void	Fatal(const char *);
-void	fatal(const char *);
-void	fsm_print(void);
-void	releasenode(int, Node *);
-void	tfree(void *);
-void	tl_explain(int);
-void	tl_UnGetchar(void);
-void	tl_parse(void);
-void	tl_yyerror(char *);
-void	trans(Node *);
+void *tl_emalloc(int);
+ATrans *emalloc_atrans();
+void free_atrans(ATrans *, int);
+void free_all_atrans();
+GTrans *emalloc_gtrans();
+void free_gtrans(GTrans *, GTrans *, int);
+BTrans *emalloc_btrans();
+void free_btrans(BTrans *, BTrans *, int);
+void a_stats(void);
+void addtrans(Graph *, char *, Node *, char *);
+void cache_stats(void);
+void dump(Node *);
+void Fatal(const char *);
+void fatal(const char *);
+void fsm_print(void);
+void releasenode(int, Node *);
+void tfree(void *);
+void tl_explain(int);
+void tl_UnGetchar(void);
+void tl_parse(void);
+void tl_yyerror(char *);
+void trans(Node *);
 
-void    mk_alternating(Node *);
-void    mk_generalized();
-void    mk_buchi();
+void mk_alternating(Node *);
+void mk_generalized();
+void mk_buchi();
 
 ATrans *dup_trans(ATrans *);
 ATrans *merge_trans(ATrans *, ATrans *);
 void do_merge_trans(ATrans **, ATrans *, ATrans *);
 
-int  *new_set(int);
-int  *clear_set(int *, int);
-int  *make_set(int , int);
+int *new_set(int);
+int *clear_set(int *, int);
+int *make_set(int, int);
 void copy_set(int *, int *, int);
-int  *dup_set(int *, int);
+int *dup_set(int *, int);
 void merge_sets(int *, int *, int);
 void do_merge_sets(int *, int *, int *, int);
-int  *intersect_sets(int *, int *, int);
+int *intersect_sets(int *, int *, int);
 void add_set(int *, int);
 void rem_set(int *, int);
-void spin_print_set(int *, int*);
+void spin_print_set(int *, int *);
 void print_set(int *, int);
-int  empty_set(int *, int);
-int  empty_intersect_sets(int *, int *, int);
-int  same_sets(int *, int *, int);
-int  included_set(int *, int *, int);
-int  in_set(int *, int);
-int  *list_set(int *, int);
+int empty_set(int *, int);
+int empty_intersect_sets(int *, int *, int);
+int same_sets(int *, int *, int);
+int included_set(int *, int *, int);
+int in_set(int *, int);
+int *list_set(int *, int);
 
-int timeval_subtract (struct timeval *, struct timeval *, struct timeval *);
+int timeval_subtract(struct timeval *, struct timeval *, struct timeval *);
 
 void put_uform(void);
 
-#define ZN	(Node *)0
-#define ZS	(Symbol *)0
-#define Nhash	255    	
-#define True	tl_nn(TRUE,  ZN, ZN)
-#define False	tl_nn(FALSE, ZN, ZN)
-#define Not(a)	push_negation(tl_nn(NOT, a, ZN))
-#define rewrite(n)	canonical(right_linked(n))
+#define ZN (Node *)0
+#define ZS (Symbol *)0
+#define Nhash 255
+#define True tl_nn(TRUE, ZN, ZN)
+#define False tl_nn(FALSE, ZN, ZN)
+#define Not(a) push_negation(tl_nn(NOT, a, ZN))
+#define rewrite(n) canonical(right_linked(n))
 
-typedef Node	*Nodeptr;
-#define YYSTYPE	 Nodeptr
+typedef Node *Nodeptr;
+#define YYSTYPE Nodeptr
 
-#define Debug(x)	{ if (0) printf(x); }
-#define Debug2(x,y)	{ if (tl_verbose) printf(x,y); }
-#define Dump(x)		{ if (0) dump(x); }
-#define Explain(x)	{ if (tl_verbose) tl_explain(x); }
+#define Debug(x)                                                               \
+  {                                                                            \
+    if (0)                                                                     \
+      printf(x);                                                               \
+  }
+#define Debug2(x, y)                                                           \
+  {                                                                            \
+    if (tl_verbose)                                                            \
+      printf(x, y);                                                            \
+  }
+#define Dump(x)                                                                \
+  {                                                                            \
+    if (0)                                                                     \
+      dump(x);                                                                 \
+  }
+#define Explain(x)                                                             \
+  {                                                                            \
+    if (tl_verbose)                                                            \
+      tl_explain(x);                                                           \
+  }
 
-#define Assert(x, y)	{ if (!(x)) { tl_explain(y); \
-			  Fatal(": assertion failed\n"); } }
-#define min(x,y)        ((x<y)?x:y)
+#define Assert(x, y)                                                           \
+  {                                                                            \
+    if (!(x)) {                                                                \
+      tl_explain(y);                                                           \
+      Fatal(": assertion failed\n");                                           \
+    }                                                                          \
+  }
+#define min(x, y) ((x < y) ? x : y)

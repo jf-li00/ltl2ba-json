@@ -33,22 +33,22 @@
 #include "ltl2ba.h"
 
 #if 1
-#define log(e, u, d)	event[e][(int) u] += (long) d;
+#define log(e, u, d) event[e][(int)u] += (long)d;
 #else
 #define log(e, u, d)
 #endif
 
-#define A_LARGE		80
-#define A_USER		0x55000000
-#define NOTOOBIG	32768
+#define A_LARGE 80
+#define A_USER 0x55000000
+#define NOTOOBIG 32768
 
-#define POOL		0
-#define ALLOC		1
-#define FREE		2
-#define NREVENT		3
+#define POOL 0
+#define ALLOC 1
+#define FREE 2
+#define NREVENT 3
 
-extern	unsigned long All_Mem;
-extern	int tl_verbose;
+extern unsigned long All_Mem;
+extern int tl_verbose;
 
 ATrans *atrans_list = (ATrans *)0;
 GTrans *gtrans_list = (GTrans *)0;
@@ -59,85 +59,81 @@ int gallocs = 0, gfrees = 0, gpool = 0;
 int ballocs = 0, bfrees = 0, bpool = 0;
 
 union M {
-	long size;
-	union M *link;
+  long size;
+  union M *link;
 };
 
 static union M *freelist[A_LARGE];
-static long	req[A_LARGE];
-static long	event[NREVENT][A_LARGE];
+static long req[A_LARGE];
+static long event[NREVENT][A_LARGE];
 
-void *
-tl_emalloc(int U)
-{	union M *m;
-  	long r, u;
-	void *rp;
+void *tl_emalloc(int U) {
+  union M *m;
+  long r, u;
+  void *rp;
 
-	u = (long) ((U-1)/sizeof(union M) + 2);
+  u = (long)((U - 1) / sizeof(union M) + 2);
 
-	if (u >= A_LARGE)
-	{	log(ALLOC, 0, 1);
-		if (tl_verbose)
-		printf("tl_spin: memalloc %ld bytes\n", u);
-		m = (union M *) emalloc((int) u*sizeof(union M));
-		All_Mem += (unsigned long) u*sizeof(union M);
-	} else
-	{	if (!freelist[u])
-		{	r = req[u] += req[u] ? req[u] : 1;
-			if (r >= NOTOOBIG)
-				r = req[u] = NOTOOBIG;
-			log(POOL, u, r);
-			freelist[u] = (union M *)
-				emalloc((int) r*u*sizeof(union M));
-			All_Mem += (unsigned long) r*u*sizeof(union M);
-			m = freelist[u] + (r-2)*u;
-			for ( ; m >= freelist[u]; m -= u)
-				m->link = m+u;
-		}
-		log(ALLOC, u, 1);
-		m = freelist[u];
-		freelist[u] = m->link;
-	}
-	m->size = (u|A_USER);
+  if (u >= A_LARGE) {
+    log(ALLOC, 0, 1);
+    if (tl_verbose)
+      printf("tl_spin: memalloc %ld bytes\n", u);
+    m = (union M *)emalloc((int)u * sizeof(union M));
+    All_Mem += (unsigned long)u * sizeof(union M);
+  } else {
+    if (!freelist[u]) {
+      r = req[u] += req[u] ? req[u] : 1;
+      if (r >= NOTOOBIG)
+        r = req[u] = NOTOOBIG;
+      log(POOL, u, r);
+      freelist[u] = (union M *)emalloc((int)r * u * sizeof(union M));
+      All_Mem += (unsigned long)r * u * sizeof(union M);
+      m = freelist[u] + (r - 2) * u;
+      for (; m >= freelist[u]; m -= u)
+        m->link = m + u;
+    }
+    log(ALLOC, u, 1);
+    m = freelist[u];
+    freelist[u] = m->link;
+  }
+  m->size = (u | A_USER);
 
-	for (r = 1; r < u; )
-		(&m->size)[r++] = 0;
+  for (r = 1; r < u;)
+    (&m->size)[r++] = 0;
 
-	rp = (void *) (m+1);
-	memset(rp, 0, U);
-	return rp;
+  rp = (void *)(m + 1);
+  memset(rp, 0, U);
+  return rp;
 }
 
-void
-tfree(void *v)
-{	union M *m = (union M *) v;
-	long u;
+void tfree(void *v) {
+  union M *m = (union M *)v;
+  long u;
 
-	--m;
-	if ((m->size&0xFF000000) != A_USER)
-		Fatal("releasing a free block");
+  --m;
+  if ((m->size & 0xFF000000) != A_USER)
+    Fatal("releasing a free block");
 
-	u = (m->size &= 0xFFFFFF);
-	if (u >= A_LARGE)
-	{	log(FREE, 0, 1);
-		/* free(m); */
-	} else
-	{	log(FREE, u, 1);
-		m->link = freelist[u];
-		freelist[u] = m;
-	}
+  u = (m->size &= 0xFFFFFF);
+  if (u >= A_LARGE) {
+    log(FREE, 0, 1);
+    /* free(m); */
+  } else {
+    log(FREE, u, 1);
+    m->link = freelist[u];
+    freelist[u] = m;
+  }
 }
 
-ATrans* emalloc_atrans() {
+ATrans *emalloc_atrans() {
   ATrans *result;
-  if(!atrans_list) {
+  if (!atrans_list) {
     result = (ATrans *)tl_emalloc(sizeof(GTrans));
     result->pos = new_set(1);
     result->neg = new_set(1);
-    result->to  = new_set(0);
+    result->to = new_set(0);
     apool++;
-  }
-  else {
+  } else {
     result = atrans_list;
     atrans_list = atrans_list->nxt;
     result->nxt = (ATrans *)0;
@@ -147,8 +143,10 @@ ATrans* emalloc_atrans() {
 }
 
 void free_atrans(ATrans *t, int rec) {
-  if(!t) return;
-  if(rec) free_atrans(t->nxt, rec);
+  if (!t)
+    return;
+  if (rec)
+    free_atrans(t->nxt, rec);
   t->nxt = atrans_list;
   atrans_list = t;
   afrees++;
@@ -156,7 +154,7 @@ void free_atrans(ATrans *t, int rec) {
 
 void free_all_atrans() {
   ATrans *t;
-  while(atrans_list) {
+  while (atrans_list) {
     t = atrans_list;
     atrans_list = t->nxt;
     tfree(t->to);
@@ -166,16 +164,15 @@ void free_all_atrans() {
   }
 }
 
-GTrans* emalloc_gtrans() {
+GTrans *emalloc_gtrans() {
   GTrans *result;
-  if(!gtrans_list) {
+  if (!gtrans_list) {
     result = (GTrans *)tl_emalloc(sizeof(GTrans));
-    result->pos   = new_set(1);
-    result->neg   = new_set(1);
+    result->pos = new_set(1);
+    result->neg = new_set(1);
     result->final = new_set(0);
     gpool++;
-  }
-  else {
+  } else {
     result = gtrans_list;
     gtrans_list = gtrans_list->nxt;
   }
@@ -185,23 +182,23 @@ GTrans* emalloc_gtrans() {
 
 void free_gtrans(GTrans *t, GTrans *sentinel, int fly) {
   gfrees++;
-  if(sentinel && (t != sentinel)) {
+  if (sentinel && (t != sentinel)) {
     free_gtrans(t->nxt, sentinel, fly);
-    if(fly) t->to->incoming--;
+    if (fly)
+      t->to->incoming--;
   }
   t->nxt = gtrans_list;
   gtrans_list = t;
 }
 
-BTrans* emalloc_btrans() {
+BTrans *emalloc_btrans() {
   BTrans *result;
-  if(!btrans_list) {
+  if (!btrans_list) {
     result = (BTrans *)tl_emalloc(sizeof(BTrans));
     result->pos = new_set(1);
     result->neg = new_set(1);
     bpool++;
-  }
-  else {
+  } else {
     result = btrans_list;
     btrans_list = btrans_list->nxt;
   }
@@ -211,35 +208,31 @@ BTrans* emalloc_btrans() {
 
 void free_btrans(BTrans *t, BTrans *sentinel, int fly) {
   bfrees++;
-  if(sentinel && (t != sentinel)) {
+  if (sentinel && (t != sentinel)) {
     free_btrans(t->nxt, sentinel, fly);
-    if(fly) t->to->incoming--;
+    if (fly)
+      t->to->incoming--;
   }
   t->nxt = btrans_list;
   btrans_list = t;
 }
 
-void
-a_stats(void)
-{	long	p, a, f;
-	int	i;
+void a_stats(void) {
+  long p, a, f;
+  int i;
 
-	printf(" size\t  pool\tallocs\t frees\n");
+  printf(" size\t  pool\tallocs\t frees\n");
 
-	for (i = 0; i < A_LARGE; i++)
-	{	p = event[POOL][i];
-		a = event[ALLOC][i];
-		f = event[FREE][i];
+  for (i = 0; i < A_LARGE; i++) {
+    p = event[POOL][i];
+    a = event[ALLOC][i];
+    f = event[FREE][i];
 
-		if(p|a|f)
-		printf("%5d\t%6ld\t%6ld\t%6ld\n",
-			i, p, a, f);
-	}
+    if (p | a | f)
+      printf("%5d\t%6ld\t%6ld\t%6ld\n", i, p, a, f);
+  }
 
-	printf("atrans\t%6d\t%6d\t%6d\n", 
-	       apool, aallocs, afrees);
-	printf("gtrans\t%6d\t%6d\t%6d\n", 
-	       gpool, gallocs, gfrees);
-	printf("btrans\t%6d\t%6d\t%6d\n", 
-	       bpool, ballocs, bfrees);
+  printf("atrans\t%6d\t%6d\t%6d\n", apool, aallocs, afrees);
+  printf("gtrans\t%6d\t%6d\t%6d\n", gpool, gallocs, gfrees);
+  printf("btrans\t%6d\t%6d\t%6d\n", bpool, ballocs, bfrees);
 }
