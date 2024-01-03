@@ -226,7 +226,7 @@ int *list_set(int *, int);
 
 int timeval_subtract(struct timeval *, struct timeval *, struct timeval *);
 
-/// print the universal formula
+// print the universal formula
 void put_uform(void);
 
 #define ZN (Node *)0
