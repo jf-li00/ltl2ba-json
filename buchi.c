@@ -28,6 +28,7 @@
 /* http://www.lsv.ens-cachan.fr/~gastin                                   */
 
 #include <cjson/cJSON.h>
+#include <stdio.h>
 
 
 #include "ltl2ba.h"
@@ -513,6 +514,23 @@ void dump_buchi_to_json() {
     free(json_output);
     cJSON_Delete(root);
 }
+void dump_buchi_dot() {
+    BState *s;
+    BTrans *t;
+    FILE *dot_out = fopen("buchi.dot",  "w");
+
+    fprintf(dot_out, "digraph Buchi {\n");
+
+    for(s = bstates->prv; s != bstates; s = s->prv) {
+        for(t = s->trans->nxt; t != s->trans; t = t->nxt) {
+            fprintf(dot_out, "\tS%i -> S%i [label=\"", s->id, t->to->id);
+            spin_print_set(t->pos, t->neg);
+            fprintf(dot_out, "\"];\n");
+        }
+    }
+
+    fprintf(dot_out, "}\n");
+}
 void print_buchi(BState *s) /* dumps the Buchi automaton */
 {
   BTrans *t;
@@ -737,6 +755,7 @@ void mk_buchi()
     }
   }
   dump_buchi_to_json();
+  dump_buchi_dot();
 
   print_spin_buchi();
 }
