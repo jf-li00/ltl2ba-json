@@ -216,6 +216,7 @@ int *intersect_sets(int *, int *, int);
 void add_set(int *, int);
 void rem_set(int *, int);
 void spin_print_set(int *, int *);
+void spin_sprint_set(char *, int *,int *);
 void print_set(int *, int);
 int empty_set(int *, int);
 int empty_intersect_sets(int *, int *, int);
@@ -226,7 +227,7 @@ int *list_set(int *, int);
 
 int timeval_subtract(struct timeval *, struct timeval *, struct timeval *);
 
-// print the universal formula
+/* print the universal formula*/
 void put_uform(void);
 
 #define ZN (Node *)0

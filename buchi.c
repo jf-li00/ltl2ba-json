@@ -525,21 +525,36 @@ void dump_buchi_to_json() {
   cJSON_Delete(root);
 }
 void dump_buchi_dot() {
-  BState *s;
-  BTrans *t;
+  BState *s;           // pointer to a state
+  BTrans *t;           // pointer to a transition
+  char condition[256]; // buffer to store the condition string
+
+  // Open the dot file for writing
   FILE *dot_out = fopen("buchi.dot", "w");
 
+  // Start of the digraph
   fprintf(dot_out, "digraph Buchi {\n");
 
+  // Iterate over all states in reverse order
   for (s = bstates->prv; s != bstates; s = s->prv) {
+    // Iterate over all transitions of the current state
     for (t = s->trans->nxt; t != s->trans; t = t->nxt) {
-      fprintf(dot_out, "\tS%i -> S%i [label=\"", s->id, t->to->id);
-      spin_print_set(t->pos, t->neg);
-      fprintf(dot_out, "\"];\n");
+      // Generate the condition string based on the positive and negative sets
+      // of the transition
+      spin_sprint_set(condition, t->pos, t->neg);
+
+      // Print the transition from the current state to the final state of the
+      // transition with the condition as the label
+      fprintf(dot_out, "\tS%i -> S%i [label=\"%s\"];\n", s->id, t->to->id,
+              condition);
     }
   }
 
+  // End of the digraph
   fprintf(dot_out, "}\n");
+
+  // Close the dot file
+  fclose(dot_out);
 }
 void print_buchi(BState *s) /* dumps the Buchi automaton */
 {

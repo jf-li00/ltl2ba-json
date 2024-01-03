@@ -28,7 +28,7 @@
 #       FRANCE                                                               
 
 CC=gcc
-CFLAGS= -O3 -ansi -DNXT
+CFLAGS= -O3 -DNXT
 LDFLAGS= -lcjson
 
 LTL2BA=	parse.o lex.o main.o trans.o buchi.o set.o \

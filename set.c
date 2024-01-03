@@ -145,6 +145,39 @@ void spin_print_set(int *pos,
     fprintf(tl_out, "1");
 }
 
+void spin_sprint_set(char *buffer, int *pos,
+                     int *neg) /* prints the content of a set for spin */
+{
+  int i, j, start_pos = 1, start_neg = 1;
+  char *p = buffer; // pointer to the current position in the buffer
+
+  p += sprintf(p, "Pos(");
+
+  for (i = 0; i < sym_size; i++)
+    for (j = 0; j < mod; j++) {
+      if (pos[i] & (1 << j)) {
+        if (!start_pos)
+          p += sprintf(p, " && ");
+        p += sprintf(p, "%s", sym_table[mod * i + j]);
+        start_pos = 0;
+      }
+    }
+
+  p += sprintf(p, "), Neg(");
+
+  for (i = 0; i < sym_size; i++)
+    for (j = 0; j < mod; j++) {
+      if (neg[i] & (1 << j)) {
+        if (!start_neg)
+          p += sprintf(p, " && ");
+        p += sprintf(p, "%s", sym_table[mod * i + j]);
+        start_neg = 0;
+      }
+    }
+
+  sprintf(p, ")");
+}
+
 void print_set(int *l, int type) /* prints the content of a set */
 {
   int i, j, start = 1;
