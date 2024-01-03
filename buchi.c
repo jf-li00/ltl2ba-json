@@ -29,6 +29,7 @@
 
 #include <cjson/cJSON.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "ltl2ba.h"
 
@@ -533,6 +534,7 @@ void dump_buchi_dot() {
   BState *s;           // pointer to a state
   BTrans *t;           // pointer to a transition
   char condition[256]; // buffer to store the condition string
+  int accept_all = 0;  // flag to check if all states are accepting
 
   // Open the dot file for writing
   FILE *dot_out = fopen("buchi.dot", "w");
@@ -542,16 +544,28 @@ void dump_buchi_dot() {
 
   // Iterate over all states in reverse order
   for (s = bstates->prv; s != bstates; s = s->prv) {
+    char state_name[256];      // buffer to store the state name
+    char dest_state_name[256]; // buffer to store the destination state name
+    if (s->id == 0) {          /* accept_all at the end */
+      accept_all = 1;
+      continue;
+    }
     // Iterate over all transitions of the current state
     for (t = s->trans->nxt; t != s->trans; t = t->nxt) {
-      // Generate the condition string based on the positive and negative sets
-      // of the transition
+      get_state_name(state_name, s);
+      get_state_name(dest_state_name, t->to);
+      // Generate the condition string based on the positive and negative
+      // sets of the transition
       spin_sprint_set(condition, t->pos, t->neg);
 
       // Print the transition from the current state to the final state of the
       // transition with the condition as the label
-      fprintf(dot_out, "\tS%i -> S%i [label=\"%s\"];\n", s->id, t->to->id,
-              condition);
+      fprintf(dot_out, "\t%s -> %s [label=\"%s\"];\n", state_name,
+              dest_state_name, condition);
+
+      // Clean the char buffer;
+      memset(state_name, 0, strlen(state_name));
+      memset(dest_state_name, 0, strlen(dest_state_name));
     }
   }
 
@@ -561,6 +575,21 @@ void dump_buchi_dot() {
   // Close the dot file
   fclose(dot_out);
 }
+
+void get_state_name(char *buffer, BState *s) {
+  if (s->final == accept) {
+    sprintf(buffer, "accept_");
+  } else {
+    sprintf(buffer, "T%i_", s->final);
+  }
+
+  if (s->id == -1) {
+    sprintf(buffer, "init");
+  } else {
+    sprintf(buffer, "S%i", s->id);
+  }
+}
+
 void print_buchi(BState *s) /* dumps the Buchi automaton */
 {
   BTrans *t;

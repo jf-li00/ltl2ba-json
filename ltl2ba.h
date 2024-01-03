@@ -219,6 +219,7 @@ void rem_set(int *, int);
 void spin_print_set(int *, int *);
 void spin_sprint_set(char *, int *,int *);
 cJSON *conditions_to_json_array(int *pos, int *neg);
+void get_state_name(char *buffer, BState *s);
 void print_set(int *, int);
 int empty_set(int *, int);
 int empty_intersect_sets(int *, int *, int);
