@@ -40,4 +40,4 @@ ltl2ba:	$(LTL2BA)
 $(LTL2BA): ltl2ba.h
 
 clean:
-	rm -f ltl2ba *.o core
+	rm -f ltl2ba *.o core buchi.json buchi.dot
