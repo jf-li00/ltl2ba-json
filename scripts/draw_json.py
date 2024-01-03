@@ -17,7 +17,7 @@ def draw_json(filename):
 
     # Add the transitions to the graph
     for transition in data["transitions"]:
-        label = "Pos: " + ", ".join(transition["conditions"]["pos"])
+        label = "Pos: " + transition["conditions"]["pos"]
         if transition["conditions"]["neg"]:
             label += "\nNeg: " + ", ".join(transition["conditions"]["neg"])
         dot.edge(
@@ -33,6 +33,7 @@ def main():
     if len(sys.argv) < 2:
         print("Usage: python script.py <filename>")
         sys.exit(1)
+    draw_json(sys.argv[1])
 
 
 if __name__ == "__main__":

@@ -180,25 +180,34 @@ void spin_sprint_set(char *buffer, int *pos,
 }
 
 cJSON *conditions_to_json_array(int *pos, int *neg) {
-  int i, j;
-  cJSON *pos_array = cJSON_CreateArray();
-  cJSON *neg_array = cJSON_CreateArray();
+  int i, j, start_pos = 1, start_neg = 1;
+  char pos_str[1024] = "", neg_str[1024] = "";
 
   for (i = 0; i < sym_size; i++)
     for (j = 0; j < mod; j++) {
       if (pos[i] & (1 << j)) {
-        cJSON_AddItemToArray(pos_array,
-                             cJSON_CreateString(sym_table[mod * i + j]));
+        if (!start_pos)
+          strcat(pos_str, " && ");
+        strcat(pos_str, sym_table[mod * i + j]);
+        start_pos = 0;
       }
       if (neg[i] & (1 << j)) {
-        cJSON_AddItemToArray(neg_array,
-                             cJSON_CreateString(sym_table[mod * i + j]));
+        if (!start_neg)
+          strcat(neg_str, " && ");
+        strcat(neg_str, "!");
+        strcat(neg_str, sym_table[mod * i + j]);
+        start_neg = 0;
       }
     }
 
+  // if (start_pos)
+  //   strcpy(pos_str, "1");
+  // if (start_neg)
+  //   strcpy(neg_str, "1");
+
   cJSON *conditions = cJSON_CreateObject();
-  cJSON_AddItemToObject(conditions, "pos", pos_array);
-  cJSON_AddItemToObject(conditions, "neg", neg_array);
+  cJSON_AddItemToObject(conditions, "pos", cJSON_CreateString(pos_str));
+  cJSON_AddItemToObject(conditions, "neg", cJSON_CreateString(neg_str));
 
   return conditions;
 }
