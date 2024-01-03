@@ -28,6 +28,7 @@
 /* http://www.lsv.ens-cachan.fr/~gastin                                   */
 
 #include "ltl2ba.h"
+#include <cjson/cJSON.h>
 
 extern FILE *tl_out;
 extern int node_size, sym_size, scc_size;
@@ -176,6 +177,30 @@ void spin_sprint_set(char *buffer, int *pos,
     }
 
   sprintf(p, ")");
+}
+
+cJSON *conditions_to_json_array(int *pos, int *neg) {
+  int i, j;
+  cJSON *pos_array = cJSON_CreateArray();
+  cJSON *neg_array = cJSON_CreateArray();
+
+  for (i = 0; i < sym_size; i++)
+    for (j = 0; j < mod; j++) {
+      if (pos[i] & (1 << j)) {
+        cJSON_AddItemToArray(pos_array,
+                             cJSON_CreateString(sym_table[mod * i + j]));
+      }
+      if (neg[i] & (1 << j)) {
+        cJSON_AddItemToArray(neg_array,
+                             cJSON_CreateString(sym_table[mod * i + j]));
+      }
+    }
+
+  cJSON *conditions = cJSON_CreateObject();
+  cJSON_AddItemToObject(conditions, "pos", pos_array);
+  cJSON_AddItemToObject(conditions, "neg", neg_array);
+
+  return conditions;
 }
 
 void print_set(int *l, int type) /* prints the content of a set */

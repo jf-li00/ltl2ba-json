@@ -507,6 +507,11 @@ void dump_buchi_to_json() {
       cJSON *transition = cJSON_CreateObject();
       cJSON_AddNumberToObject(transition, "from", s->id);
       cJSON_AddNumberToObject(transition, "to", t->to->id);
+
+      // Convert the conditions to a JSON array and add it to the transition
+      cJSON *conditions = conditions_to_json_array(t->pos, t->neg);
+      cJSON_AddItemToObject(transition, "conditions", conditions);
+
       cJSON_AddItemToArray(transitions, transition);
     }
   }
@@ -521,8 +526,8 @@ void dump_buchi_to_json() {
     fclose(file);
   }
 
-  free(json_output);
   cJSON_Delete(root);
+  free(json_output);
 }
 void dump_buchi_dot() {
   BState *s;           // pointer to a state
